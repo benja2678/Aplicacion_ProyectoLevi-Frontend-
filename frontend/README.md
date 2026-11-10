@@ -36,6 +36,20 @@ las llamadas a `/api/...` hacia `http://localhost:8000` (ver `vite.config.ts`).
 
 `npm run build` genera la versión estática en `dist/`.
 
+## En el servidor (Docker + Nginx)
+
+No se arranca solo: lo enciende el `docker-compose.yml` de `proyecto-backend/deploy/`
+junto con el backend y la base de datos.
+
+| Archivo | Para qué sirve |
+|---|---|
+| `Dockerfile` | 2 etapas: Node compila la página (`npm run build`) y Nginx sirve el resultado |
+| `nginx.conf` | `/` → la página; `/api/`, `/admin/` y `/static/` → backend Django. Límite de 50 MB por petición y de intentos de login |
+| `.dockerignore` | lo que no entra a la imagen (`node_modules`, `.env.local`…) |
+
+En Docker siempre se compila con `VITE_DATA_SOURCE=api` (con login), sin importar
+lo que diga tu `.env.local`.
+
 ## Qué hace
 
 Tres pantallas:

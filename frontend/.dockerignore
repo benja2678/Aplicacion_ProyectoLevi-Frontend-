@@ -1,0 +1,13 @@
+# Archivos que NO se copian a la imagen de Docker.
+node_modules/
+dist/
+dist-ssr/
+
+# Configuración local de tu PC (ej. .env.local con VITE_DATA_SOURCE=local)
+*.local
+.env
+
+.git/
+.vscode/
+.idea/
+*.log
