@@ -1,11 +1,14 @@
 // Capa de datos.
 //
-// Toda la interfaz habla con este contrato (Repository), nunca con localStorage
-// directamente. Para conectar Supabase basta con escribir `supabaseRepository`
-// que cumpla la misma interfaz y cambiarlo en `repository` al final del archivo.
+// Toda la interfaz habla con este contrato (Repository), nunca con localStorage ni
+// con la API directamente. Hay dos implementaciones y se elige con la variable de
+// entorno VITE_DATA_SOURCE (al final del archivo):
+//   - local: datos en localStorage con ejemplos (demo, sin login).
+//   - api:   backend Django (apiRepository.ts), solo con la cuenta del profesor.
 // Todos los métodos son async justamente para que el cambio no toque las pantallas.
 
 import type { SessionLog, StoredSession, Student, StudentInput } from '../types';
+import { createApiRepository } from './apiRepository';
 import { buildDemoData, sessionId } from './demo';
 
 export interface ImportResult {
@@ -174,5 +177,8 @@ function createLocalRepository(): Repository {
   };
 }
 
-// Cambiar aquí por createSupabaseRepository() cuando exista el backend.
-export const repository: Repository = createLocalRepository();
+// VITE_DATA_SOURCE=api  -> backend Django.  Cualquier otro valor (o sin definir) -> demo local.
+export type DataSource = 'local' | 'api';
+export const DATA_SOURCE: DataSource = import.meta.env.VITE_DATA_SOURCE === 'api' ? 'api' : 'local';
+
+export const repository: Repository = DATA_SOURCE === 'api' ? createApiRepository() : createLocalRepository();

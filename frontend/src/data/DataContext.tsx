@@ -21,6 +21,8 @@ interface DataState {
 
 const Ctx = createContext<DataState | null>(null);
 
+const messageOf = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
 export function DataProvider({ children }: { children: ReactNode }) {
   const [students, setStudents] = useState<Student[]>([]);
   const [sessions, setSessions] = useState<StoredSession[]>([]);
@@ -34,7 +36,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setSessions(se);
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(`No se pudieron cargar los datos. ${messageOf(e)}`);
     } finally {
       setLoading(false);
     }
@@ -51,6 +53,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
       await reload();
       return r;
     };
+    // Borrar no tiene un lugar propio para mostrar errores: se avisan en el panel.
+    const visible = async <T,>(p: Promise<T>, what: string) => {
+      try {
+        return await after(p);
+      } catch (e) {
+        setError(`${what}. ${messageOf(e)}`);
+        throw e;
+      }
+    };
     return {
       loading,
       error,
@@ -60,8 +71,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       reload,
       createStudent: (i) => after(repository.createStudent(i)),
       updateStudent: (id, i) => after(repository.updateStudent(id, i)),
-      deleteStudent: (id) => after(repository.deleteStudent(id)),
-      deleteSession: (id) => after(repository.deleteSession(id)),
+      deleteStudent: (id) => visible(repository.deleteStudent(id), 'No se pudo eliminar al alumno'),
+      deleteSession: (id) => visible(repository.deleteSession(id), 'No se pudo eliminar la sesión'),
       importSessions: (f) => after(repository.importSessions(f)),
       resetDemo: repository.resetDemo ? () => after(repository.resetDemo!()) : undefined,
       clearAll: repository.clearAll ? () => after(repository.clearAll!()) : undefined,

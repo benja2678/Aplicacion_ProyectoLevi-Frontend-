@@ -5,7 +5,7 @@ import { Icon, Modal } from './ui';
 
 /**
  * Carga los .json que el visor guarda en Android/data/<paquete>/files/sesiones/.
- * Cuando el envío automático a Supabase funcione, esto queda solo como respaldo.
+ * Con el envío automático de Unity al backend funcionando, esto queda como respaldo.
  */
 export function ImportDialog({ onClose }: { onClose: () => void }) {
   const { importSessions } = useData();
@@ -13,15 +13,22 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function handle(files: FileList | null) {
     if (!files?.length) return;
     setBusy(true);
-    const list = await Promise.all(
-      [...files].filter((f) => f.name.toLowerCase().endsWith('.json')).map(async (f) => ({ name: f.name, text: await f.text() })),
-    );
-    setResult(await importSessions(list));
-    setBusy(false);
+    setError(null);
+    try {
+      const list = await Promise.all(
+        [...files].filter((f) => f.name.toLowerCase().endsWith('.json')).map(async (f) => ({ name: f.name, text: await f.text() })),
+      );
+      setResult(await importSessions(list));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -57,7 +64,12 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
         <input ref={input} type="file" accept=".json,application/json" multiple hidden onChange={(e) => void handle(e.target.files)} />
       </div>
 
-      {result && (
+      {error && (
+        <p className="error" role="alert" style={{ marginBottom: 0 }}>
+          No se pudieron cargar: {error}
+        </p>
+      )}
+      {result && !error && (
         <p style={{ marginBottom: 0 }}>
           <strong>{result.added}</strong> {result.added === 1 ? 'sesión nueva' : 'sesiones nuevas'}
           {result.duplicated > 0 && <span className="muted"> · {result.duplicated} ya estaban</span>}

@@ -7,6 +7,7 @@ const PATHS = {
   edit: <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" />,
   back: <path d="M15 18l-6-6 6-6" />,
   chevron: <path d="M6 9l6 6 6-6" />,
+  logout: <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3" />,
   search: (
     <>
       <circle cx="11" cy="11" r="7" />
