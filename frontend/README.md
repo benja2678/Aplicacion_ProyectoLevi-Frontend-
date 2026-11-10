@@ -39,7 +39,8 @@ las llamadas a `/api/...` hacia `http://localhost:8000` (ver `vite.config.ts`).
 ## En el servidor (Docker + Nginx)
 
 No se arranca solo: lo enciende el `docker-compose.yml` de `proyecto-backend/deploy/`
-junto con el backend y la base de datos.
+junto con el backend y la base de datos. La instalación paso a paso está en
+`DEPLOY.md` del repositorio `proyecto-backend`.
 
 | Archivo | Para qué sirve |
 |---|---|
