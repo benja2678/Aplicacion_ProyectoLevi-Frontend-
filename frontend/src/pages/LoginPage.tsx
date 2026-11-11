@@ -12,7 +12,7 @@ export function LoginPage() {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!username.trim() || !password) return setError('Escribe tu usuario y tu contraseña.');
+    if (!username.trim() || !password) return setError('Escribe tu correo y tu contraseña.');
     setBusy(true);
     setError(null);
     try {
@@ -39,16 +39,17 @@ export function LoginPage() {
 
         <div>
           <h1>Panel docente</h1>
-          <p>Ingresa con tu cuenta de profesor.</p>
+          <p>Ingresa con tu correo y contraseña.</p>
         </div>
 
         {notice && !error && <div className="notice">{notice}</div>}
 
         <div className="field">
-          <label htmlFor="login-user">Usuario</label>
+          <label htmlFor="login-user">Correo</label>
           <input
             id="login-user"
             className="input"
+            type="email"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
