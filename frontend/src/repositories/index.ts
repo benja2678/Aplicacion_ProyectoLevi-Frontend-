@@ -1,13 +1,13 @@
-// Elige de dónde salen los datos según VITE_DATA_SOURCE:
+// Elige de dónde salen los datos según VITE_DATA_SOURCE (.env.dev / .env.prod):
 //   api   -> backend Django (con login del lector: docente o equipo)
 //   local -> demo en el navegador, sin login (cualquier otro valor o sin definir)
 
+import { config } from '../config';
 import { createApiRepository } from './apiRepository';
 import { createLocalRepository } from './localRepository';
 import type { Repository } from './Repository';
 
-export type DataSource = 'local' | 'api';
-export const DATA_SOURCE: DataSource = import.meta.env.VITE_DATA_SOURCE === 'api' ? 'api' : 'local';
+export const DATA_SOURCE = config.dataSource;
 
 export const repository: Repository = DATA_SOURCE === 'api' ? createApiRepository() : createLocalRepository();
 

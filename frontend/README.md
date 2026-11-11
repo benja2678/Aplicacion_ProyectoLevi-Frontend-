@@ -12,43 +12,50 @@ carpeta/
 └── proyecto-db/          base de datos PostgreSQL
 ```
 
-## Dos modos de funcionamiento
+## Entornos: `.env.dev` y `.env.prod`
 
-La variable `VITE_DATA_SOURCE` elige de dónde salen los datos:
-
-| Valor | Datos | Login |
+| Archivo | Lo usan | Para qué |
 |---|---|---|
-| `api` | backend Django (`proyecto-backend`) | sí: correo y clave de la tabla `lector` (docente o equipo) |
-| `local` (o sin definir) | datos de ejemplo en el navegador (localStorage) | no (demo) |
+| `.env.dev` | `npm run dev` y `npm run build:dev` | desarrollo en tu PC |
+| `.env.prod` | `npm run build` | la versión que se copia al servidor |
 
-## Ejecutar en tu PC
+| Variable | Qué hace |
+|---|---|
+| `VITE_DATA_SOURCE` | `api` = backend Django con login (correo y clave de la tabla `lector`) · `local` = demo con datos de ejemplo en el navegador, sin login |
+| `VITE_API_URL` | dirección de la API. `/api` = la misma dirección de la página. Si el backend está en otra dirección, la completa (ej. `https://laboratorio.uta.cl/api`; el backend debe permitirlo con CORS) |
+| `BACKEND_URL` | solo en `.env.dev`: a qué backend reenvía Vite las llamadas a `/api` (por defecto `http://localhost:8000`) |
+
+- **No hay secretos aquí**: todo lo que empieza con `VITE_` queda dentro de la página y
+  cualquiera puede verlo. Por eso `.env.dev` y `.env.prod` sí se suben a git.
+- Para cambiar algo **solo en tu PC** sin tocarlos, crea `.env.dev.local` o
+  `.env.prod.local` (no se suben a git). Ojo: un `.env.local` afecta a **los dos** entornos.
+- En el código, el único archivo que lee estas variables es `src/config.ts`.
+
+## Ejecutar en tu PC (desarrollo)
 
 ```powershell
 cd frontend
 npm install
-copy .env.example .env.local   # deja VITE_DATA_SOURCE=api (o local para la demo)
-npm run dev                     # http://localhost:5173
+npm run dev        # usa .env.dev -> http://localhost:5173
 ```
 
-En modo `api` el backend tiene que estar encendido en otra terminal
-(`proyecto-backend`: `.venv\Scripts\python manage.py runserver`). Vite reenvía todas
-las llamadas a `/api/...` hacia `http://localhost:8000` (ver `vite.config.ts`).
+Con `VITE_DATA_SOURCE=api` el backend tiene que estar encendido en otra terminal
+(`proyecto-backend`: `.venvScriptspython manage.py runserver`).
 
-`npm run build` genera la versión estática en `dist/`.
-
-## En el servidor (sin Docker)
+## Compilar para el servidor (producción)
 
 La página no corre en Docker: se compila en tu PC y se copian los archivos generados.
 
 ```powershell
 cd frontend
-$env:VITE_DATA_SOURCE = 'api'   # con login, contra el backend
-npm run build                   # genera la carpeta dist/ (index.html + assets/*.js, *.css)
+npm run build      # usa .env.prod -> carpeta dist/ (index.html + assets/*.js, *.css)
 ```
 
 Copia **todo el contenido de `dist/`** a la carpeta que publica el servidor web.
-Ese servidor web debe además reenviar las rutas `/api/` (y `/admin/`, `/static/`) al
-backend Django: la página llama siempre a `/api/...` en la misma dirección.
+Con `VITE_API_URL=/api`, ese servidor web debe además reenviar `/api/` (y `/admin/`,
+`/static/`) al backend Django.
+
+`npm run build:dev` compila igual pero con `.env.dev` (para probar una compilación de desarrollo).
 
 ## Qué hace
 
@@ -124,3 +131,12 @@ domain/ · utils/       reglas y formato: funciones puras, sin React ni red
 | `domain/sessions.ts` · `domain/metrics.ts` · `domain/catalog.ts` | id de sesión, los 4 datos de cada sesión, experimentos y etiquetas |
 | `utils/format.ts` | fechas y duraciones legibles |
 | `types.ts` | tipos de datos (los de Unity y los del panel) |
+
+---------------------------------
+
+compilar y subir al servidor:
+cd C:\Users\Usuario\Desktop\Proyecto_levi\Aplicacion_tesis\frontend
+$env:VITE_DATA_SOURCE = 'api'
+npm run build
+
+------------------------------

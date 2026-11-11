@@ -1,12 +1,13 @@
 // Cliente HTTP del backend Django. Es el único lugar de la aplicación que usa fetch.
 //
-// - Las rutas son relativas (/api/...): en desarrollo Vite las reenvía a
+// - La base de la API sale de config.apiUrl (VITE_API_URL). Con "/api", en desarrollo Vite la reenvía a
 //   http://localhost:8000 (vite.config.ts); en el servidor, el servidor web que publica la página.
 // - Agrega el token "access" a cada petición (Authorization: Bearer ...).
 // - Si el backend responde 401 (el access dura 30 min), pide uno nuevo con el
 //   "refresh" y repite la petición UNA vez. Si tampoco se puede, la sesión terminó.
 // - Convierte cualquier error en un ApiError con un mensaje legible en español.
 
+import { config } from '../config';
 import { expireSession, tokens } from './tokens';
 
 export const SESSION_EXPIRED = 'Tu sesión expiró. Vuelve a iniciar sesión.';
@@ -28,7 +29,7 @@ export async function send(method: Method, path: string, body?: unknown, withTok
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (withToken && tokens.access) headers.Authorization = `Bearer ${tokens.access}`;
   try {
-    return await fetch(`/api${path}`, {
+    return await fetch(`${config.apiUrl}${path}`, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
