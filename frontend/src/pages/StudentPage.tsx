@@ -5,11 +5,13 @@ import { StudentForm } from '../components/StudentForm';
 import { Icon, Modal } from '../components/ui';
 import { useData } from '../context/dataState';
 import { fullName, sessionsOf } from '../domain/students';
-import { fmtDuration } from '../utils/format';
+import { experimentTitle } from '../domain/catalog';
+import type { StoredSession } from '../types';
+import { fmtDateTime, fmtDuration } from '../utils/format';
 
 export function StudentPage() {
   const { id } = useParams();
-  const { students, sessions, deleteStudent, loading } = useData();
+  const { students, sessions, deleteStudent, deleteSession, loading } = useData();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const student = students.find((s) => s.id === id);
@@ -31,6 +33,11 @@ export function StudentPage() {
     if (!student || !confirm(`¿Eliminar a ${fullName(student)}? Sus sesiones no se borran.`)) return;
     await deleteStudent(student.id);
     navigate('/');
+  }
+
+  async function removeSession(s: StoredSession) {
+    if (!confirm(`¿Eliminar la sesión de ${experimentTitle(s.log.experimentId, s.log.experimentTitle)} del ${fmtDateTime(s.log.startedAt)}? No se puede deshacer.`)) return;
+    await deleteSession(s.id);
   }
 
   return (
@@ -68,7 +75,7 @@ export function StudentPage() {
             Haz clic en una sesión para ver el detalle.
           </p>
           {own.map((s) => (
-            <SessionCard key={s.id} session={s} />
+            <SessionCard key={s.id} session={s} onDelete={(x) => void removeSession(x)} />
           ))}
         </>
       )}

@@ -12,8 +12,11 @@ function verdictTone(v: string) {
   return 'bad' as const;
 }
 
-/** Una sesión: 4 datos a la vista y el detalle al hacer clic. */
-export function SessionCard({ session }: { session: StoredSession }) {
+/**
+ * Una sesión: 4 datos a la vista y el detalle al hacer clic.
+ * Si se pasa `onDelete`, el detalle muestra el botón para eliminarla (la confirmación la hace quien la usa).
+ */
+export function SessionCard({ session, onDelete }: { session: StoredSession; onDelete?: (session: StoredSession) => void }) {
   const [open, setOpen] = useState(false);
   const log = session.log;
   const m = computeMetrics(log);
@@ -95,6 +98,13 @@ export function SessionCard({ session }: { session: StoredSession }) {
               </tbody>
             </table>
           </div>
+          {onDelete && (
+            <div className="session-actions">
+              <button className="btn btn-quiet btn-danger" onClick={() => onDelete(session)}>
+                <Icon name="trash" /> Eliminar sesión
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
