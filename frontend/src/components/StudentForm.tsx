@@ -17,7 +17,7 @@ function nextCode(taken: Set<string>): string {
  * Formulario de una sola línea: nombre, asignatura y código.
  * Sin `student` agrega uno nuevo; con `student` lo edita.
  */
-export function StudentForm({ student, onDone }: { student?: Student; onDone?: () => void }) {
+export function StudentForm({ student, onDone }: { student?: Student; onDone?: (saved: Student) => void }) {
   const { students, createStudent, updateStudent } = useData();
   const taken = useMemo(
     () => new Set(students.filter((s) => s.id !== student?.id).map((s) => s.codigoParticipante.toUpperCase())),
@@ -42,11 +42,10 @@ export function StudentForm({ student, onDone }: { student?: Student; onDone?: (
     setError(null);
     try {
       const data = { nombre, asignatura, codigoParticipante: code };
-      if (student) await updateStudent(student.id, data);
-      else await createStudent(data);
+      const saved = student ? await updateStudent(student.id, data) : await createStudent(data);
       setNombre('');
       setCodigo('');
-      onDone?.();
+      onDone?.(saved);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

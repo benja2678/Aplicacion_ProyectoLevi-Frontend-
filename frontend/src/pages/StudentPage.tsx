@@ -75,7 +75,14 @@ export function StudentPage() {
 
       {editing && (
         <Modal title="Editar alumno" onClose={() => setEditing(false)}>
-          <StudentForm student={student} onDone={() => setEditing(false)} />
+          <StudentForm
+            student={student}
+            onDone={(saved) => {
+              setEditing(false);
+              // Con la API, el id del alumno es su código: si cambió, la ficha cambia de dirección.
+              if (saved.id !== student.id) navigate(`/alumno/${encodeURIComponent(saved.id)}`, { replace: true });
+            }}
+          />
         </Modal>
       )}
     </>
