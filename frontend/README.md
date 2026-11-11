@@ -7,7 +7,7 @@ Es uno de 3 repositorios que van uno al lado del otro:
 
 ```
 carpeta/
-├── Aplicacion_tesis/     este repositorio (frontend React + Nginx)
+├── Aplicacion_tesis/     este repositorio (frontend React)
 ├── proyecto-backend/     API Django + Docker Compose (deploy/)
 └── proyecto-db/          base de datos PostgreSQL
 ```
@@ -36,20 +36,19 @@ las llamadas a `/api/...` hacia `http://localhost:8000` (ver `vite.config.ts`).
 
 `npm run build` genera la versión estática en `dist/`.
 
-## En el servidor (Docker + Nginx)
+## En el servidor (sin Docker)
 
-No se arranca solo: lo enciende el `docker-compose.yml` de `proyecto-backend/deploy/`
-junto con el backend y la base de datos. La instalación paso a paso está en
-`DEPLOY.md` del repositorio `proyecto-backend`.
+La página no corre en Docker: se compila en tu PC y se copian los archivos generados.
 
-| Archivo | Para qué sirve |
-|---|---|
-| `Dockerfile` | 2 etapas: Node compila la página (`npm run build`) y Nginx sirve el resultado |
-| `nginx.conf` | `/` → la página; `/api/`, `/admin/` y `/static/` → backend Django. Límite de 50 MB por petición y de intentos de login |
-| `.dockerignore` | lo que no entra a la imagen (`node_modules`, `.env.local`…) |
+```powershell
+cd frontend
+$env:VITE_DATA_SOURCE = 'api'   # con login, contra el backend
+npm run build                   # genera la carpeta dist/ (index.html + assets/*.js, *.css)
+```
 
-En Docker siempre se compila con `VITE_DATA_SOURCE=api` (con login), sin importar
-lo que diga tu `.env.local`.
+Copia **todo el contenido de `dist/`** a la carpeta que publica el servidor web.
+Ese servidor web debe además reenviar las rutas `/api/` (y `/admin/`, `/static/`) al
+backend Django: la página llama siempre a `/api/...` en la misma dirección.
 
 ## Qué hace
 

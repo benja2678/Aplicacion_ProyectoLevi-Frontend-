@@ -1,7 +1,7 @@
 // Cliente HTTP del backend Django. Es el único lugar de la aplicación que usa fetch.
 //
 // - Las rutas son relativas (/api/...): en desarrollo Vite las reenvía a
-//   http://localhost:8000 (vite.config.ts); en el servidor lo hace Nginx.
+//   http://localhost:8000 (vite.config.ts); en el servidor, el servidor web que publica la página.
 // - Agrega el token "access" a cada petición (Authorization: Bearer ...).
 // - Si el backend responde 401 (el access dura 30 min), pide uno nuevo con el
 //   "refresh" y repite la petición UNA vez. Si tampoco se puede, la sesión terminó.
@@ -108,7 +108,7 @@ async function errorMessage(res: Response): Promise<string> {
   try {
     data = await res.json();
   } catch {
-    /* la respuesta no es JSON (por ejemplo, una página de error de Nginx) */
+    /* la respuesta no es JSON (por ejemplo, una página de error del servidor web) */
   }
   const message = firstMessage(data);
   if (message) return message;
