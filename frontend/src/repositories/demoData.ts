@@ -3,7 +3,8 @@
 // (semilla fija), así que se ven igual en cada recarga.
 
 import type { SessionEvent, SessionLog, StoredSession, Student, TaskSummary } from '../types';
-import { DEFAULT_SUBJECT, EXPERIMENTS } from './catalog';
+import { DEFAULT_SUBJECT, EXPERIMENTS } from '../domain/catalog';
+import { sessionId } from '../domain/sessions';
 
 function rng(seed: number) {
   let s = seed >>> 0;
@@ -171,25 +172,23 @@ function buildSession(code: string, expId: string, start: Date, skill: number, r
   };
 }
 
-export function sessionId(log: SessionLog): string {
-  return `${log.participantCode}_${log.experimentId}_${log.startedAt}`;
-}
-
-const DEMO_STUDENTS: [string, string, number][] = [
-  ['Camila Rojas', 'A001', 0.85],
-  ['Matías González', 'A002', 0.55],
-  ['Valentina Muñoz', 'A003', 0.7],
-  ['Benjamín Díaz', 'B001', 0.4],
-  ['Fernanda Vargas', 'B002', 0.9],
-  ['Tomás Contreras', 'B003', 0.62],
+// [nombre, apellido, código, qué tan bien le va (0 a 1)]
+const DEMO_STUDENTS: [string, string, string, number][] = [
+  ['Camila', 'Rojas', 'A001', 0.85],
+  ['Matías', 'González', 'A002', 0.55],
+  ['Valentina', 'Muñoz', 'A003', 0.7],
+  ['Benjamín', 'Díaz', 'B001', 0.4],
+  ['Fernanda', 'Vargas', 'B002', 0.9],
+  ['Tomás', 'Contreras', 'B003', 0.62],
 ];
 
 export function buildDemoData(): { students: Student[]; sessions: StoredSession[] } {
   const rand = rng(20261106);
   const base = new Date(2026, 9, 14, 9, 0, 0);
-  const students: Student[] = DEMO_STUDENTS.map(([nombre, code], i) => ({
+  const students: Student[] = DEMO_STUDENTS.map(([nombre, apellido, code], i) => ({
     id: `demo-${i + 1}`,
     nombre,
+    apellido,
     asignatura: DEFAULT_SUBJECT,
     codigoParticipante: code,
     creadoEn: isoLocal(new Date(base.getTime() - 86400000 * 2)),
@@ -197,7 +196,7 @@ export function buildDemoData(): { students: Student[]; sessions: StoredSession[
 
   const sessions: StoredSession[] = [];
   const plan = ['T0', 'N1', 'N2', 'N1D'];
-  DEMO_STUDENTS.forEach(([, code, skill], i) => {
+  DEMO_STUDENTS.forEach(([, , code, skill], i) => {
     const n = 2 + Math.floor(rand() * 3);
     for (let k = 0; k < n; k++) {
       const day = k * 6 + (code.startsWith('B') ? 2 : 0) + Math.floor(rand() * 2);

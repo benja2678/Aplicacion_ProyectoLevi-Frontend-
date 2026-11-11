@@ -3,9 +3,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { SessionCard } from '../components/SessionCard';
 import { StudentForm } from '../components/StudentForm';
 import { Icon, Modal } from '../components/ui';
-import { useData } from '../data/DataContext';
-import { fmtDuration } from '../lib/format';
-import { sortByDateDesc } from '../lib/metrics';
+import { useData } from '../context/dataState';
+import { fullName, sessionsOf } from '../domain/students';
+import { fmtDuration } from '../utils/format';
 
 export function StudentPage() {
   const { id } = useParams();
@@ -24,11 +24,11 @@ export function StudentPage() {
     );
   }
 
-  const own = sortByDateDesc(sessions.filter((s) => s.log.participantCode.toUpperCase() === student.codigoParticipante.toUpperCase()));
+  const own = sessionsOf(student, sessions);
   const totalTime = own.reduce((a, s) => a + (s.log.durationSeconds || 0), 0);
 
   async function remove() {
-    if (!student || !confirm(`¿Eliminar a ${student.nombre}? Sus sesiones no se borran.`)) return;
+    if (!student || !confirm(`¿Eliminar a ${fullName(student)}? Sus sesiones no se borran.`)) return;
     await deleteStudent(student.id);
     navigate('/');
   }
@@ -41,7 +41,7 @@ export function StudentPage() {
 
       <div className="student-head">
         <div>
-          <h1>{student.nombre}</h1>
+          <h1>{fullName(student)}</h1>
           <p>
             <span className="code">{student.codigoParticipante}</span> · {student.asignatura}
             {own.length > 0 && ` · ${own.length} ${own.length === 1 ? 'sesión' : 'sesiones'}, ${fmtDuration(totalTime)} en total`}

@@ -1,22 +1,22 @@
 import { useState, type FormEvent } from 'react';
 import { Icon } from '../components/ui';
-import { useAuth } from '../data/AuthContext';
+import { useAuth } from '../context/authState';
 
-/** Pantalla de inicio de sesión del profesor (solo en modo api). No hay registro público. */
+/** Pantalla de inicio de sesión del lector: docente o equipo (solo en modo api). No hay registro público. */
 export function LoginPage() {
   const { login, notice } = useAuth();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!username.trim() || !password) return setError('Escribe tu correo y tu contraseña.');
+    if (!email.trim() || !password) return setError('Escribe tu correo y tu contraseña.');
     setBusy(true);
     setError(null);
     try {
-      await login(username, password);
+      await login(email, password);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setPassword('');
@@ -50,8 +50,8 @@ export function LoginPage() {
             id="login-user"
             className="input"
             type="email"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}

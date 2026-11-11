@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { experimentTitle, VERDICT_LABELS } from '../data/catalog';
-import { fmtDateTime, fmtDuration } from '../lib/format';
-import { computeMetrics } from '../lib/metrics';
+import { experimentTitle, VERDICT_LABELS } from '../domain/catalog';
+import { fmtDateTime, fmtDuration } from '../utils/format';
+import { computeMetrics } from '../domain/metrics';
 import type { StoredSession } from '../types';
 import { Badge, Icon } from './ui';
 

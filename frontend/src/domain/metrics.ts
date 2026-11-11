@@ -1,4 +1,4 @@
-import { SERIOUS_ISSUES } from '../data/catalog';
+import { SERIOUS_ISSUES } from './catalog';
 import type { SessionEvent, SessionLog, StoredSession, TaskSummary } from '../types';
 
 /** Lo esencial de una sesión. */

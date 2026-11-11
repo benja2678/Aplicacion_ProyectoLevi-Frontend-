@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { HashRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
 import { ImportDialog } from './components/ImportDialog';
 import { Icon } from './components/ui';
-import { AuthProvider, useAuth } from './data/AuthContext';
-import { DataProvider, useData } from './data/DataContext';
-import { DATA_SOURCE } from './data/repository';
+import { AuthProvider } from './context/AuthProvider';
+import { useAuth } from './context/authState';
+import { DataProvider } from './context/DataProvider';
+import { useData } from './context/dataState';
+import { DATA_SOURCE } from './repositories';
 import { LoginPage } from './pages/LoginPage';
+import type { Account } from './types';
 import { StudentPage } from './pages/StudentPage';
 import { StudentsPage } from './pages/StudentsPage';
 
@@ -13,7 +16,7 @@ export default function App() {
   // Demo con localStorage: sin login, igual que siempre.
   if (DATA_SOURCE === 'local') return <Panel />;
 
-  // Backend Django: solo entra el profesor con su usuario y contraseña.
+  // Backend Django: entra un lector (docente o equipo) con su correo y contraseña.
   return (
     <AuthProvider>
       <AuthGate />
@@ -22,7 +25,7 @@ export default function App() {
 }
 
 function AuthGate() {
-  const { status, username, logout } = useAuth();
+  const { status, account, logout } = useAuth();
   if (status === 'checking') {
     return (
       <main className="login-wrap">
@@ -32,15 +35,15 @@ function AuthGate() {
   }
   if (status === 'signedOut') return <LoginPage />;
   // El panel (y sus datos) solo existe mientras hay sesión iniciada.
-  return <Panel account={{ username, logout }} />;
+  return <Panel session={account ? { account, logout } : undefined} />;
 }
 
-interface Account {
-  username: string | null;
+interface PanelSession {
+  account: Account;
   logout(): void;
 }
 
-function Panel({ account }: { account?: Account }) {
+function Panel({ session }: { session?: PanelSession }) {
   const [importing, setImporting] = useState(false);
 
   return (
@@ -61,10 +64,12 @@ function Panel({ account }: { account?: Account }) {
               <button className="btn" onClick={() => setImporting(true)} title="Cargar sesiones del visor">
                 <Icon name="upload" /> <span>Cargar sesiones</span>
               </button>
-              {account && (
+              {session && (
                 <>
-                  {account.username && <span className="topbar-user">{account.username}</span>}
-                  <button className="btn btn-quiet" onClick={account.logout} title="Cerrar sesión">
+                  <span className="topbar-user" title={session.account.email}>
+                    {session.account.name} · {session.account.role}
+                  </span>
+                  <button className="btn btn-quiet" onClick={session.logout} title="Cerrar sesión">
                     <Icon name="logout" /> <span>Cerrar sesión</span>
                   </button>
                 </>

@@ -239,7 +239,7 @@ h2 {
 /* ---------- formulario de alumno ---------- */
 .student-form {
   display: grid;
-  grid-template-columns: 2fr 1.4fr 110px auto;
+  grid-template-columns: 1.3fr 1.3fr 1.2fr 100px auto;
   gap: 12px;
   align-items: end;
 }
@@ -581,7 +581,6 @@ h2 {
   .student-form {
     grid-template-columns: 1fr 1fr;
   }
-  .student-form .field:first-child,
   .student-form .btn {
     grid-column: 1 / -1;
   }

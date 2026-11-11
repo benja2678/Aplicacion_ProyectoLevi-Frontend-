@@ -1,37 +1,32 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { DEFAULT_SUBJECT, SUBJECTS } from '../data/catalog';
-import { useData } from '../data/DataContext';
+import { useData } from '../context/dataState';
+import { DEFAULT_SUBJECT, SUBJECTS } from '../domain/catalog';
+import { nextFreeCode, normalizeCode } from '../domain/students';
 import type { Student } from '../types';
 import { Icon } from './ui';
 
-/** Siguiente código libre: A001, A002... */
-function nextCode(taken: Set<string>): string {
-  for (let i = 1; i < 1000; i++) {
-    const c = `A${i.toString().padStart(3, '0')}`;
-    if (!taken.has(c)) return c;
-  }
-  return '';
-}
-
 /**
- * Formulario de una sola línea: nombre, asignatura y código.
+ * Formulario de una sola línea: nombre, apellido, asignatura y código.
  * Sin `student` agrega uno nuevo; con `student` lo edita.
+ * `onDone` recibe el alumno guardado (con la API, su id cambia si cambió el código).
  */
 export function StudentForm({ student, onDone }: { student?: Student; onDone?: (saved: Student) => void }) {
   const { students, createStudent, updateStudent } = useData();
   const taken = useMemo(
-    () => new Set(students.filter((s) => s.id !== student?.id).map((s) => s.codigoParticipante.toUpperCase())),
+    () => new Set(students.filter((s) => s.id !== student?.id).map((s) => normalizeCode(s.codigoParticipante))),
     [students, student],
   );
 
   const [nombre, setNombre] = useState(student?.nombre ?? '');
+  const [apellido, setApellido] = useState(student?.apellido ?? '');
   const [asignatura, setAsignatura] = useState(student?.asignatura ?? DEFAULT_SUBJECT);
   const [codigo, setCodigo] = useState(student?.codigoParticipante ?? '');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Para un alumno nuevo se propone el siguiente código libre.
-  const code = (codigo || (student ? '' : nextCode(taken))).trim().toUpperCase();
+  const suggested = student ? '' : nextFreeCode(taken);
+  const code = normalizeCode(codigo || suggested);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -41,9 +36,10 @@ export function StudentForm({ student, onDone }: { student?: Student; onDone?: (
     setSaving(true);
     setError(null);
     try {
-      const data = { nombre, asignatura, codigoParticipante: code };
+      const data = { nombre, apellido, asignatura, codigoParticipante: code };
       const saved = student ? await updateStudent(student.id, data) : await createStudent(data);
       setNombre('');
+      setApellido('');
       setCodigo('');
       onDone?.(saved);
     } catch (err) {
@@ -58,8 +54,12 @@ export function StudentForm({ student, onDone }: { student?: Student; onDone?: (
   return (
     <form className="student-form" onSubmit={submit}>
       <div className="field">
-        <label htmlFor="sf-nombre">Nombre del alumno</label>
-        <input id="sf-nombre" className="input" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Camila Rojas" autoComplete="off" autoFocus={!!student} />
+        <label htmlFor="sf-nombre">Nombre</label>
+        <input id="sf-nombre" className="input" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Camila" autoComplete="off" autoFocus={!!student} />
+      </div>
+      <div className="field">
+        <label htmlFor="sf-apellido">Apellido</label>
+        <input id="sf-apellido" className="input" value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder="Ej. Rojas" autoComplete="off" />
       </div>
       <div className="field">
         <label htmlFor="sf-asig">Asignatura</label>
@@ -76,7 +76,7 @@ export function StudentForm({ student, onDone }: { student?: Student; onDone?: (
           className="input"
           value={codigo}
           onChange={(e) => setCodigo(e.target.value.toUpperCase())}
-          placeholder={student ? '' : nextCode(taken)}
+          placeholder={suggested}
           autoComplete="off"
         />
       </div>

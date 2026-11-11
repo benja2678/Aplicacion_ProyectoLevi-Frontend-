@@ -2,35 +2,24 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StudentForm } from '../components/StudentForm';
 import { Icon } from '../components/ui';
-import { useData } from '../data/DataContext';
-import { fmtDate } from '../lib/format';
+import { useData } from '../context/dataState';
+import { fullName, normalizeCode, orphanCodes, searchStudents, sessionStatsByCode } from '../domain/students';
 import type { Student } from '../types';
+import { fmtDate } from '../utils/format';
 
 export function StudentsPage() {
   const { students, sessions, studentByCode, deleteStudent, clearAll } = useData();
   const navigate = useNavigate();
-  const [q, setQ] = useState('');
+  const [query, setQuery] = useState('');
 
-  // Por código: cuántas sesiones y cuándo fue la última.
-  const stats = useMemo(() => {
-    const map = new Map<string, { n: number; last: string }>();
-    for (const s of sessions) {
-      const c = s.log.participantCode.toUpperCase();
-      const cur = map.get(c) ?? { n: 0, last: '' };
-      map.set(c, { n: cur.n + 1, last: s.log.startedAt > cur.last ? s.log.startedAt : cur.last });
-    }
-    return map;
-  }, [sessions]);
+  const stats = useMemo(() => sessionStatsByCode(sessions), [sessions]);
+  const orphans = orphanCodes(stats, studentByCode);
+  const list = searchStudents(students, query);
 
-  const orphanCodes = [...stats.keys()].filter((c) => !studentByCode.has(c) && c !== 'EDITOR').sort();
-
-  const term = q.trim().toLowerCase();
-  const list = [...students]
-    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
-    .filter((s) => !term || s.nombre.toLowerCase().includes(term) || s.codigoParticipante.toLowerCase().includes(term));
+  const open = (s: Student) => navigate(`/alumno/${encodeURIComponent(s.id)}`);
 
   async function remove(s: Student) {
-    if (confirm(`¿Eliminar a ${s.nombre}? Sus sesiones no se borran.`)) await deleteStudent(s.id);
+    if (confirm(`¿Eliminar a ${fullName(s)}? Sus sesiones no se borran.`)) await deleteStudent(s.id);
   }
 
   return (
@@ -45,10 +34,10 @@ export function StudentsPage() {
         <StudentForm />
       </section>
 
-      {orphanCodes.length > 0 && (
+      {orphans.length > 0 && (
         <div className="notice">
           <span>
-            El visor tiene sesiones del código <strong>{orphanCodes.join(', ')}</strong>, que aún no es de ningún alumno. Agrégalo con ese código para ver sus resultados.
+            El visor tiene sesiones del código <strong>{orphans.join(', ')}</strong>, que aún no es de ningún alumno. Agrégalo con ese código para ver sus resultados.
           </span>
         </div>
       )}
@@ -61,7 +50,7 @@ export function StudentsPage() {
           {students.length > 4 && (
             <div className="search">
               <Icon name="search" />
-              <input className="input" placeholder="Buscar" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar alumno" />
+              <input className="input" placeholder="Buscar" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar alumno" />
             </div>
           )}
         </div>
@@ -72,7 +61,7 @@ export function StudentsPage() {
             Usa el formulario de arriba para agregar el primero.
           </div>
         ) : list.length === 0 ? (
-          <div className="empty">Ningún alumno coincide con “{q}”.</div>
+          <div className="empty">Ningún alumno coincide con “{query}”.</div>
         ) : (
           <>
             <div className="col-head">
@@ -83,18 +72,11 @@ export function StudentsPage() {
               <span />
             </div>
             {list.map((s) => {
-              const st = stats.get(s.codigoParticipante.toUpperCase());
+              const st = stats.get(normalizeCode(s.codigoParticipante));
               return (
-                <div
-                  key={s.id}
-                  className="row-link"
-                  role="link"
-                  tabIndex={0}
-                  onClick={() => navigate(`/alumno/${s.id}`)}
-                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/alumno/${s.id}`)}
-                >
+                <div key={s.id} className="row-link" role="link" tabIndex={0} onClick={() => open(s)} onKeyDown={(e) => e.key === 'Enter' && open(s)}>
                   <span>
-                    <span className="row-name">{s.nombre}</span>
+                    <span className="row-name">{fullName(s)}</span>
                     <div className="muted" style={{ fontSize: 13 }}>
                       {s.asignatura}
                     </div>
@@ -102,7 +84,7 @@ export function StudentsPage() {
                   <span>
                     <span className="code">{s.codigoParticipante}</span>
                   </span>
-                  <span className="hide-sm">{st ? st.n : <span className="muted">0</span>}</span>
+                  <span className="hide-sm">{st ? st.count : <span className="muted">0</span>}</span>
                   <span className="hide-sm">{st ? fmtDate(st.last) : <span className="muted">Sin sesiones</span>}</span>
                   <button
                     className="btn btn-quiet btn-icon"
@@ -110,7 +92,7 @@ export function StudentsPage() {
                       e.stopPropagation();
                       void remove(s);
                     }}
-                    aria-label={`Eliminar a ${s.nombre}`}
+                    aria-label={`Eliminar a ${fullName(s)}`}
                     title="Eliminar"
                   >
                     <Icon name="trash" />

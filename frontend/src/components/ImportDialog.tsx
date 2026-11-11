@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { useData } from '../data/DataContext';
-import type { ImportResult } from '../data/repository';
+import { useData } from '../context/dataState';
+import type { ImportResult } from '../types';
 import { Icon, Modal } from './ui';
 
 /**

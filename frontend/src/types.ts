@@ -74,9 +74,10 @@ export interface SessionLog {
 // Datos propios de la aplicación web
 
 export interface Student {
+  /** Con la API es el código del visor; en la demo local, un id propio. */
   id: string;
-  /** nombre completo */
   nombre: string;
+  apellido: string;
   asignatura: string;
   /** Código que muestra el visor (A001, B002...). Une al alumno con sus sesiones. */
   codigoParticipante: string;
@@ -93,4 +94,25 @@ export interface StoredSession {
   log: SessionLog;
   source: SessionSource;
   receivedAt: string;
+}
+
+/** Un archivo .json elegido en "Cargar sesiones". */
+export interface SessionFile {
+  name: string;
+  text: string;
+}
+
+/** Resultado de "Cargar sesiones". */
+export interface ImportResult {
+  added: number;
+  duplicated: number;
+  invalid: { file: string; reason: string }[];
+}
+
+/** El lector conectado (tabla `lector` del backend). */
+export interface Account {
+  email: string;
+  name: string;
+  /** docente | equipo */
+  role: string;
 }
